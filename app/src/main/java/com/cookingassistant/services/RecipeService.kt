@@ -101,7 +101,7 @@ class RecipeService(private val _apiRepository: ApiRepository) {
         return try {
             val response = _apiRepository.getAllRecipes(
                 SearchPhrase = rq.SearchPhrase,
-                IngredientsSearch = rq.Ingredients,
+                IngredientsSearch = rq.Ingredients?.joinToString(separator = ","),
                 SortBy = rq.SortBy,
                 SortDirection = rq.SortDirection,
                 FilterByDifficulty = rq.Difficulty,

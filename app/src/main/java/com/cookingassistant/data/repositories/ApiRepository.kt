@@ -172,7 +172,7 @@ interface ApiRepository{
     @GET("recipes")
     suspend fun getAllRecipes(
         @Query("SearchPhrase") SearchPhrase: String? = null,
-        @Query("IngredientsSearch") IngredientsSearch: List<String>?  = null,
+        @Query("IngredientsSearch") IngredientsSearch: String?  = null,
         @Query("SortBy") SortBy: String? = null, //  "Ratings", "TimeInMinutes", "Difficulty", "VoteCount", "Caloricity
         @Query("SortDirection") SortDirection: String? = null, // "Ascending" or "Descending"
         @Query("FilterByDifficulty") FilterByDifficulty: String? = null,
