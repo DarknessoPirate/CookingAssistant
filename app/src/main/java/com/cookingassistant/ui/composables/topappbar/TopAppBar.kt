@@ -1,6 +1,9 @@
 package com.cookingassistant.ui.composables.topappbar
 
 import TimerTool
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,11 +67,13 @@ import androidx.compose.ui.unit.sp
 import com.cookingassistant.data.ShoppingProducts
 import com.cookingassistant.data.objects.ScreenControlManager.topAppBarViewModel
 import com.cookingassistant.data.objects.SearchEngine
+import com.cookingassistant.data.objects.ShakeDetector
 import com.cookingassistant.ui.composables.ShoppingList.ShoppingList
 import com.cookingassistant.ui.composables.ShoppingList.ShoppingListViewModel
 import com.cookingassistant.ui.screens.FilterScreen.FilterScreen
 import com.cookingassistant.ui.screens.FilterScreen.FilterScreenViewModel
 import kotlinx.coroutines.launch
+import kotlin.math.sqrt
 
 @Composable
 fun DrawerItemContent(text:String, icon : ImageVector) {
@@ -104,6 +110,18 @@ fun TopAppBar(topAppBarviewModel : TopAppBarViewModel,
     }
 
     topAppBarviewModel.onSearchTextChanged(searchQuery)
+
+    var detectedShake by remember { ShakeDetector.detectedShake }
+
+    // Use LaunchedEffect to react to shake detection
+    LaunchedEffect(detectedShake) {
+        if (detectedShake) {
+            topAppBarviewModel.onDeselctTool()
+            if (topAppBarviewModel.navController.currentDestination?.route != "home") {
+                topAppBarviewModel.navController.navigate("home")
+            }
+        }
+    }
 
     //---------//
     //Left menu//

@@ -3,10 +3,16 @@ package com.cookingassistant
 import TimerTool
 import TimerViewModel
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -17,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
@@ -29,6 +36,7 @@ import com.cookingassistant.compose.AppTheme
 import com.cookingassistant.data.ShoppingProducts
 import com.cookingassistant.data.network.RetrofitClient
 import com.cookingassistant.data.objects.ScreenControlManager
+import com.cookingassistant.data.objects.ShakeDetector
 import com.cookingassistant.data.repositories.TokenRepository
 import com.cookingassistant.services.AuthService
 import com.cookingassistant.services.RecipeService
@@ -56,9 +64,16 @@ import com.cookingassistant.ui.screens.reviews.ReviewList
 import com.cookingassistant.ui.screens.reviews.ReviewViewModel
 import com.cookingassistant.util.VoiceToTextParser
 import java.io.File
+import kotlin.math.sqrt
 
 
 class MainActivity : ComponentActivity() {
+
+    // Sensor gestures
+    private lateinit var sensorManager : SensorManager
+    private lateinit var accelerometer: Sensor
+    private lateinit var sensorEventListener: SensorEventListener
+
     // Declare the permission request contract
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -76,9 +91,43 @@ class MainActivity : ComponentActivity() {
         VoiceToTextParser(application)
     }
 
+    private fun startSensorListener() {
+        // Initialize the sensor event listener and the callback for accelerometer data
+        sensorEventListener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) {
+                if (event != null && event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                    val x = event.values[0]
+                    val y = event.values[1]
+                    val z = event.values[2]
+
+                    // Calculate the acceleration
+                    val acceleration = sqrt(x * x + y * y + z * z)
+
+                    // Set the threshold for shake detection (e.g., 25)
+                    val shakeDetected = acceleration > 25
+
+                    // Update the state in your Composable through a shared view model or some other mechanism
+                    // Use a callback to notify Composable about the shake detection
+                    ShakeDetector.detectedShake.value = shakeDetected
+                }
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Initialize the sensor manager and accelerometer
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!!
+
+        // Start the sensor listener
+        startSensorListener()
+
+
 
         // Check and request permission if not already granted
         checkAndRequestPermission()
@@ -113,6 +162,18 @@ class MainActivity : ComponentActivity() {
         }
 
         ShoppingProducts.loadProducts(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Register the sensor listener to listen to accelerometer data
+        sensorManager.registerListener(sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Unregister the listener when the app goes to the background
+        sensorManager.unregisterListener(sensorEventListener)
     }
 
     override fun onBackPressed() { //Deprecated but wbo asked?
@@ -216,7 +277,8 @@ fun AppNavigator(authService: AuthService,userService: UserService,reviewService
         recipeService = recipeService,
         tokenRepository = tokenRepository,
         destinationDir = destinationDir,
-        voiceToTextParser = voiceToTextParser)
+        voiceToTextParser = voiceToTextParser
+    )
 }
 
 @Composable
@@ -233,8 +295,8 @@ fun NavGraph(navController: NavHostController, authService: AuthService, userSer
         val topBarViewModel = TopAppBarViewModel(recipeService, rsvm, navController, recipeListViewModel, voiceToTextParser,pvm,esvm,timerToolViewModel)
 
         val loginViewModel = LoginViewModel(authService, tokenRepository)
-
         ScreenControlManager.topAppBarViewModel=topBarViewModel
+
         NavHost(navController = navController, startDestination = "login") {
             composable("login") {
                 // create viewModel and inject service
