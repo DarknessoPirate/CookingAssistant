@@ -186,6 +186,7 @@ fun RecipeDetailsPage(
                 val inList = ShoppingProducts.isInList(ingredient)
                 Row(modifier = Modifier
                     .clickable {
+                        Toast.makeText(context, "Modified shopping list", Toast.LENGTH_SHORT).show()
                         ShoppingProducts.changePresense(ingredient)
                         saveProducts(context)
                         refresh = !refresh
