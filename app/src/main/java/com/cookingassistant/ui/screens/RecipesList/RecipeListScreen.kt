@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -85,6 +87,7 @@ fun RecipeList(
     val currentState by viewModel.currentState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    var offsetX by remember { mutableStateOf(0f) }
     var isDialogDelete by remember { mutableStateOf(false) }
     var tempIdDelete by remember { mutableStateOf(0) }
 
@@ -129,6 +132,24 @@ fun RecipeList(
         Modifier
             .fillMaxWidth()
             .fillMaxHeight(sizeAnim1)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = {change, dragAmount ->
+                        change.consume()
+                        offsetX = dragAmount
+                    },
+                    onDragStart = {offsetX = 0f},
+                    onDragEnd = {
+                        if (offsetX < -5f && currentPage != 0)
+                        {
+                            viewModel.onPageButtonClicked(1)
+                        }
+                        else if(offsetX > 5f && currentPage <= totalPages) {
+                            viewModel.onPageButtonClicked(-1)
+                        }
+                    }
+                )
+            }
     ) {
         LazyColumn(
             modifier = Modifier
