@@ -324,8 +324,9 @@ fun TopAppBar(topAppBarviewModel : TopAppBarViewModel,
                                 },
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                                 keyboardActions = KeyboardActions(onSearch = {
-                                    topAppBarviewModel.onQuickSearch()
-                                }
+                                        topAppBarviewModel.onQuickSearch()
+                                        inputText = ""
+                                    }
                                 )
                             )
 
