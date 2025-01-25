@@ -5,6 +5,11 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -20,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.automirrored.outlined.ManageSearch
 import androidx.compose.material.icons.automirrored.outlined.Note
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -68,6 +74,7 @@ import com.cookingassistant.data.ShoppingProducts
 import com.cookingassistant.data.objects.ScreenControlManager.topAppBarViewModel
 import com.cookingassistant.data.objects.SearchEngine
 import com.cookingassistant.data.objects.ShakeDetector
+import com.cookingassistant.ui.composables.HelpWindow
 import com.cookingassistant.ui.composables.ShoppingList.ShoppingList
 import com.cookingassistant.ui.composables.ShoppingList.ShoppingListViewModel
 import com.cookingassistant.ui.screens.FilterScreen.FilterScreen
@@ -116,10 +123,13 @@ fun TopAppBar(topAppBarviewModel : TopAppBarViewModel,
     // Use LaunchedEffect to react to shake detection
     LaunchedEffect(detectedShake) {
         if (detectedShake) {
-            topAppBarviewModel.onDeselctTool()
-            if (topAppBarviewModel.navController.currentDestination?.route != "home") {
-                topAppBarviewModel.navController.navigate("home")
+            if (selectedTool == "help") {
+                topAppBarviewModel.onDeselctTool()
             }
+            topAppBarviewModel.onSelectTool("help")
+//            if (topAppBarviewModel.navController.currentDestination?.route != "home") {
+//                topAppBarviewModel.navController.navigate("home")
+//            }
         }
     }
 
@@ -221,6 +231,27 @@ fun TopAppBar(topAppBarviewModel : TopAppBarViewModel,
                         if(topAppBarviewModel.navController.currentDestination?.route != "editor") {
                             topAppBarviewModel.editorScreenViewModel.emptyRecipe()
                             topAppBarviewModel.navController.navigate("editor")
+                        }
+                    }
+                )
+                NavigationDrawerItem(
+                    label = { DrawerItemContent("Help", Icons.AutoMirrored.Outlined.Help) },
+                    selected = false,
+                    onClick = {
+                        if(selectedTool == "help") {
+                            topAppBarviewModel.onDeselctTool()
+                            scope.launch {
+                                drawerState.apply {
+                                    close()
+                                }
+                            }
+                        } else {
+                            scope.launch {
+                                drawerState.apply {
+                                    close()
+                                }
+                            }
+                            topAppBarviewModel.onSelectTool("help")
                         }
                     }
                 )
@@ -341,22 +372,29 @@ fun TopAppBar(topAppBarviewModel : TopAppBarViewModel,
             },
             content = { padding ->
                 padding
-                Column {
+                Column() {
                     Spacer(Modifier.fillMaxWidth().padding(top=60.dp))
-                    when(selectedTool) {
-                        "" -> {content()}
-                        "ShoppingList" -> {
-                            ShoppingProducts.loadProducts(LocalContext.current)
-                            val spvm = ShoppingListViewModel()
-                            ShoppingList(spvm)
-                        }
-                        "AdvancedSearch" -> {
-                            FilterScreen(viewModel)
-                        }
-                        "Timer" -> {
-                            TimerTool(topAppBarviewModel.timerToolViewModel)
-                        }
+
+                    AnimatedVisibility(selectedTool=="ShoppingList") {
+                        ShoppingProducts.loadProducts(LocalContext.current)
+                        val spvm = ShoppingListViewModel()
+                        ShoppingList(spvm)
                     }
+                    AnimatedVisibility(selectedTool=="AdvancedSearch") {
+                        FilterScreen(viewModel)
+                    }
+                    AnimatedVisibility(selectedTool=="Timer") {
+                        TimerTool(topAppBarviewModel.timerToolViewModel)
+                    }
+                    AnimatedVisibility(selectedTool=="help") {
+                        HelpWindow(topAppBarviewModel.navController)
+                    }
+
+
+                    AnimatedVisibility(selectedTool=="") {
+                        content()
+                    }
+
                 }
             },
         )

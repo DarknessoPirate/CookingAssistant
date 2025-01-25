@@ -103,11 +103,9 @@ class MainActivity : ComponentActivity() {
                     // Calculate the acceleration
                     val acceleration = sqrt(x * x + y * y + z * z)
 
-                    // Set the threshold for shake detection (e.g., 25)
-                    val shakeDetected = acceleration > 25
+                    // Set the threshold for shake detection
+                    val shakeDetected = acceleration > 30
 
-                    // Update the state in your Composable through a shared view model or some other mechanism
-                    // Use a callback to notify Composable about the shake detection
                     ShakeDetector.detectedShake.value = shakeDetected
                 }
             }

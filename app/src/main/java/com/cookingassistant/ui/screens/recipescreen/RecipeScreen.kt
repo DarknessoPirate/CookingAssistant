@@ -137,7 +137,7 @@ fun RecipeScreen(
                 IconButton(
                     onClick = {
                         recipeScreenViewModel.onUserEnterRecipeRatingPage()
-                        savedPage = (pagesCount+stepsCount)
+                        savedPage = (currentPage)
                         recipeScreenViewModel.setPage((pagesCount+stepsCount) + 1)
                     },
                 ) {
