@@ -1,6 +1,12 @@
 package com.cookingassistant.ui.screens.recipescreen
 
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -19,23 +25,29 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
+import androidx.compose.material.icons.filled.WavingHand
 import androidx.compose.material.icons.outlined.AddComment
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.WavingHand
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.cookingassistant.data.objects.TextFormatting
 import com.cookingassistant.ui.screens.recipescreen.composables.RecipeDetailsPage
@@ -43,6 +55,7 @@ import com.cookingassistant.ui.screens.recipescreen.composables.RecipeEndPage
 import com.cookingassistant.ui.screens.recipescreen.composables.RecipeRatingPage
 import com.cookingassistant.ui.screens.recipescreen.composables.RecipeScreenFrontPage
 import com.cookingassistant.ui.screens.recipescreen.composables.RecipeStepPage
+import kotlinx.coroutines.launch
 import java.io.File
 
 @Composable
@@ -56,6 +69,7 @@ fun RecipeScreen(
     val userReview by recipeScreenViewModel.reviewGetDto.collectAsState()
     val stepsCount by recipeScreenViewModel.stepsCount.collectAsState()
     val currentPage by recipeScreenViewModel.currentPage.collectAsState()
+    val touchlessControlls by recipeScreenViewModel.touchlessControls.collectAsState()
 
     // each step on separate page + 1 frontpage + 1 details
     val pagesCount by remember { mutableStateOf(2) }
@@ -68,6 +82,54 @@ fun RecipeScreen(
     val sizeAnim2 by animateFloatAsState(
         targetValue = if (currentPage % 2 == 1) 0.94f else 0f
     )
+
+    //WOW
+    val context = LocalContext.current
+    if(touchlessControlls) {
+        val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
+        val gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION)
+        val scope = rememberCoroutineScope()
+        val threshold = 25f
+        var lastUpdate by remember { mutableStateOf(System.currentTimeMillis()) }
+        DisposableEffect(Unit) {
+            val listener = object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent) {
+                    val now = System.currentTimeMillis()
+                    if (now - lastUpdate < 800) return
+                    lastUpdate = now
+
+                    val rotationY = event.values[2]
+                    when {
+                        rotationY > threshold -> {
+                            scope.launch {
+                                if(currentPage != 0) {
+                                    if (currentPage == (pagesCount + stepsCount) + 1) {
+                                        recipeScreenViewModel.setPage(savedPage)
+                                    } else {
+                                        recipeScreenViewModel.setPage(currentPage - 1)
+                                    }
+                                }
+                            }
+                        }
+                        rotationY < -threshold -> {
+                            scope.launch {
+                                if (currentPage < (pagesCount + stepsCount)) {
+                                    recipeScreenViewModel.setPage(currentPage + 1)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+            }
+
+            sensorManager.registerListener(listener, gyroscope, SensorManager.SENSOR_DELAY_UI)
+            onDispose {
+                sensorManager.unregisterListener(listener)
+            }
+        }
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -119,12 +181,26 @@ fun RecipeScreen(
                 }
             }
         }
+        Row(Modifier.align(Alignment.TopStart)) {
+            IconButton(onClick = {recipeScreenViewModel.switchTouchless()
+                if(touchlessControlls)
+                    Toast.makeText(context, "Disabled touch-less controls", Toast.LENGTH_LONG).show()
+                else
+                    Toast.makeText(context, "Enabled touch-less controls", Toast.LENGTH_LONG).show()
+            }) {
+                if(touchlessControlls) {
+                    Icon(imageVector = Icons.Filled.WavingHand, contentDescription = "disable touchless controls")
+                } else {
+                    Icon(imageVector = Icons.Outlined.WavingHand, contentDescription = "enable touchless controls")
+                }
+            }
+        }
 
         Row ( Modifier
             .align(Alignment.TopEnd)
         ) {
-            IconButton(onClick = {recipeScreenViewModel.onFavoriteChanged(!favorite)}
 
+            IconButton(onClick = {recipeScreenViewModel.onFavoriteChanged(!favorite)}
             ) {
                 if(favorite) {
                     Icon(imageVector = Icons.Filled.Favorite, contentDescription = "mark favorite", tint = Color.Red)

@@ -83,7 +83,7 @@ fun HelpWindow(navHostController: NavHostController) {
             "timer" -> helpText = "Timer is helpful while preparing a meal. If you allowed notifications, you will get notification when time runs out."
             "recipeReviews" -> helpText = "Recipe reviews shows all reviews - you can also edit or delete your review if wrote one."
             "recipeList" -> helpText = "Being in recipe list screen, use arrow buttons or swipe left / right to switch pages. You can also manually type page you want to go to."
-            "recipeScreen" -> helpText = "In recipe instructions screen use arrow buttons or swipe left / right to follow recipe instructions. You can also comment or add recipe to favorites clicking icon buttons at the right top."
+            "recipeScreen" -> helpText = "In recipe instructions screen use arrow buttons or swipe left / right to follow recipe instructions. You can also comment or add recipe to favorites clicking icon buttons at the right top.\nTop-left button offers touch-less controls. In touch-less mode, lay your phone on flat surface and roll it around 30 degrees either left or right side to switch current page without touching your screen."
             "editor" -> helpText = "Editor screen allows to create and edit your own recipes. Fill all necessary fields to make it happen."
             "profile" -> helpText = "Profile screen gives you insights inside your account information, favorite recipes and recipes created by you."
         }

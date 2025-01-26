@@ -62,10 +62,15 @@ class RecipeScreenViewModel(private val _recipeService: RecipeService,
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    val touchlessControls = MutableStateFlow(false)
     val currentPage = MutableStateFlow(0)
 
     fun setPage(number: Int) {
         currentPage.value = number
+    }
+
+    fun switchTouchless() {
+        touchlessControls.value = !touchlessControls.value
     }
 
     fun callDialog() {
