@@ -59,6 +59,8 @@ class TopAppBarViewModel (
         if(navController.currentDestination?.route != "recipeList") {
             navController.navigate("recipeList")
         }
+        _showSearchResults.value = false
+        _quickSearchText.value = ""
         recipeListViewModel.loadQuery(rq)
         onDeselctTool()
     }

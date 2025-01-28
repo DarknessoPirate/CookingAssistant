@@ -66,6 +66,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -270,6 +271,7 @@ fun TopAppBar(topAppBarviewModel : TopAppBarViewModel,
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                 )
+                val keyboardController = LocalSoftwareKeyboardController.current
                 CenterAlignedTopAppBar(
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.secondaryContainer)
@@ -322,18 +324,21 @@ fun TopAppBar(topAppBarviewModel : TopAppBarViewModel,
                                     }
 
                                 },
+
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                                 keyboardActions = KeyboardActions(onSearch = {
                                         topAppBarviewModel.onQuickSearch()
                                         inputText = ""
+                                        keyboardController?.hide()
                                     }
                                 )
                             )
 
                             LaunchedEffect(state.spokenText) {
                                 if (state.spokenText.isNotEmpty()) {
-                                    inputText = state.spokenText // Przypisz rozpoznany tekst do pola
+                                    inputText = state.spokenText
                                     topAppBarViewModel.onSearchTextChanged(state.spokenText)
+                                    state.spokenText = ""
                                 }
                             }
 

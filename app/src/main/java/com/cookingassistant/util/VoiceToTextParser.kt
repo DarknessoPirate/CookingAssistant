@@ -107,7 +107,7 @@ class VoiceToTextParser(
 }
 
 data class VoiceToTextParserState(
-    val spokenText: String = "",
+    var spokenText: String = "",
     val isSpeaking: Boolean = false,
     val error : String? = null
 )

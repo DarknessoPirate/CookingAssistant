@@ -47,6 +47,10 @@ class RecipesListViewModel(
     val recipes : StateFlow<List<RecipeSimpleGetDTO>> = _recipes
     val recipeQuery : StateFlow<RecipeQuery> = _recipeQuery
     val inputPageNumber : StateFlow<String> = _inputPageNumber
+    val loadedImages = MutableStateFlow<Boolean>(false)
+    val loadedRecipes : MutableStateFlow<MutableList<RecipeSimpleGetDTO>> = MutableStateFlow(
+        mutableListOf()
+    )
 
     private val _isLoading : MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -81,14 +85,17 @@ class RecipesListViewModel(
             if(_currentState.value == State.Search)
             {
                 _onLoadQuery(_recipeQuery.value.copy(PageNumber = pageNumber))
+                loadedImages.value = false
             }
             else if(_currentState.value == State.Favourite)
             {
                 _onLoadQuery(_recipeQuery.value.copy(PageNumber = pageNumber))
+                loadedImages.value = false
             }
             else if(_currentState.value == State.Own)
             {
                 _onLoadQuery(_recipeQuery.value.copy(PageNumber = pageNumber))
+                loadedImages.value = false
             }
         }
     }
@@ -139,6 +146,7 @@ class RecipesListViewModel(
                             _currentPage.value = _recipeQuery.value.PageNumber
                             if(_recipes.value.size != 0) {
                                 _foundResults.value = 1
+                                loadedRecipes.value = recipes.value.toMutableList()
                             } else {
                                 _foundResults.value = 2
                             }
@@ -179,8 +187,11 @@ class RecipesListViewModel(
                     catch (e: Exception) {
                         Log.e(tag, e.message ?: "recipe id ${r.id} image couldn't be loaded", )
                     }
-                    _recipeImages.value.apply { put(r.id, bitmap) }
+                    val updatedImages = _recipeImages.value.toMutableMap()
+                    updatedImages.put(r.id, bitmap)
+                    _recipeImages.value = updatedImages
                 }
+                //loadedImages.value = true
             }
         }
     }

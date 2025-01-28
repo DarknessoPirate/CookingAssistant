@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,8 +54,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -64,6 +68,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import com.cookingassistant.R
 import com.cookingassistant.data.objects.TextFormatting
 import com.cookingassistant.ui.composables.RatingToStars
 import com.cookingassistant.ui.screens.editor.EditorScreenViewModel
@@ -82,10 +90,11 @@ fun RecipeList(
     val totalPages by viewModel.totalPages.collectAsState()
     val currentPage by viewModel.currentPage.collectAsState()
     val inputPageNumber by viewModel.inputPageNumber.collectAsState()
-    val images by viewModel.recipeImages.collectAsState()
+    val images by  viewModel.recipeImages.collectAsState()
     val foundResult by viewModel.foundResults.collectAsState()
     val currentState by viewModel.currentState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val loadedImages by viewModel.loadedImages.collectAsState()
 
     var offsetX by remember { mutableStateOf(0f) }
     var isDialogDelete by remember { mutableStateOf(false) }
@@ -357,19 +366,30 @@ fun RecipeList(
                         text = "Calories: ${item.caloricity}, Completion time: ${TextFormatting.formatTime(item.timeInMinutes)}",
                         fontSize = 15.sp
                     )
-                    if(images.containsKey(item.id)) {
-                        if(images.getValue(item.id) != null) {
-                            val rawBitmap : Bitmap = images.getValue(item.id)!!
+                    if(images[item.id] != null ) {
+                        val rawBitmap : Bitmap = images.getValue(item.id)!!
+                        Image(
+                            contentScale = ContentScale.Crop,
+                            bitmap = rawBitmap.asImageBitmap(),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                            contentDescription = null,
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .padding(10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Show a loading indicator or placeholder
                             Image(
-                                contentScale = ContentScale.Crop,
-                                bitmap = rawBitmap.asImageBitmap(),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .weight(1f)
-                                    .fillMaxWidth()
-                                    .padding(10.dp),
-                                contentDescription = null,
-                            )
+                                painter = painterResource(R.drawable.projectlogotransparencycircular), null)
+                            CircularProgressIndicator()
                         }
                     }
 
