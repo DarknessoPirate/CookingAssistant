@@ -136,6 +136,7 @@ Replace `<your-api-ip>` with your local IPv4 address or remote server address.
 
 ---
 ## License
+This project uses [fuzzywuzzy-kotlin](https://github.com/jens-muenker/fuzzywuzzy-kotlin) library licensed under [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 This project is available for use under the MIT License.
 
 ---
