@@ -7,8 +7,8 @@ The app follows the **MVVM (Model-View-ViewModel)** architecture, ensuring clean
 
 ---
 ## Authors
-- [filip-wojc](https://github.com/filip-wojc)
 - [DarknessoPirate](https://github.com/DarknessoPirate)
+- [filip-wojc](https://github.com/filip-wojc)
 - [HAScrashed](https://github.com/HAScrashed)
 - [Robert Pintera](https://github.com/RobertPintera)
 
