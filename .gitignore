@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+.idea/deploymentTargetSelector.xml
+.kotlin/sessions/kotlin-compiler-16468695541144752566.salive
+/.kotlin/sessions
+/.kotlin/sessions
